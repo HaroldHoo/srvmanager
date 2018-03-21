@@ -15,8 +15,8 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"os/exec"
 	"path/filepath"
-	"reflect"
 	"strings"
 	"syscall"
 	"time"
@@ -92,11 +92,6 @@ func (m *Manager) Run(server *http.Server) {
 func (m *Manager) startNewServer() {
 	log := &srv_log.Log{Filename: *m.ErrorLogFile}
 
-	execSpec := &syscall.ProcAttr{
-		Env: os.Environ(),
-		// Files: []uintptr{os.Stdin.Fd(), os.Stdout.Fd(), os.Stderr.Fd()},
-	}
-
 	path := GetCurrentFilename()
 	argv := os.Args
 	// log.Infof("exec path: %v\n", path)
@@ -119,9 +114,13 @@ func (m *Manager) startNewServer() {
 	}
 	log.Infof("deamon args: %v\n", newArgs)
 
-	syscall.ForkExec(path, newArgs, execSpec)
-
-	os.Exit(0)
+	cmd := exec.Command(path)
+	cmd.Args = newArgs
+	cmd.Env = os.Environ()
+	err := cmd.Start()
+	if err != nil {
+		log.Fatalf("Restart: Failed to launch, error: %v\n", err)
+	}
 }
 
 func (m *Manager) signalListen() {
@@ -165,7 +164,8 @@ func (m *Manager) runServer() {
 
 		// service connections
 		if err := m.Srv.ListenAndServe(); err != nil {
-			if reflect.TypeOf(err).String() == "*net.OpError" {
+			//if reflect.TypeOf(err).String() == "*net.OpError" {
+			if err != http.ErrServerClosed{
 				m.removePidFile()
 				log.Fatalf("%s\n", err)
 			}else{
