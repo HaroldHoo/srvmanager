@@ -1,11 +1,11 @@
 # srvmanager
-   > graceful shutdown
-   > manager process via pidfile
-   > log something easier
+1. graceful shutdown
+2. manager process via pidfile
+3. log something easier
 
 ## Examples
    1. Via https://github.com/gin-gonic/gin :
-   > 
+   > https://github.com/HaroldHoo/srvmanager/tree/master/examples/gin
 
 ## Usage
 ```
