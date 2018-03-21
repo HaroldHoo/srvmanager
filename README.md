@@ -9,13 +9,13 @@
 
 ## Usage
 ```
-Usage of ./main/bin/calculate-service:
+Usage of ./main/bin/server:
   -accesslog string
-    	log file (default "/var/log/calculate-service_access.log")
+    	log file (default "/var/log/server_access.log")
   -errorlog string
-    	log file (default "/var/log/calculate-service_error.log")
+    	log file (default "/var/log/server_error.log")
   -pid string
-    	pid file (default "/var/run/calculate-service.pid")
+    	pid file (default "/var/run/server.pid")
   -p string
     	Listen port (default "8080")
   -s string

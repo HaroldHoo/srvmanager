@@ -9,7 +9,7 @@
 package srvmanager
 
 import (
-	srv_log "calculate-service/srvmanager/log"
+	srv_log "github.com/HaroldHoo/srvmanager/log"
 	"context"
 	"flag"
 	"net/http"
