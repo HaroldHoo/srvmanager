@@ -82,6 +82,7 @@ func (m *Manager) Run(server *http.Server) {
 			pid, _ := m.getPidFromPidFile()
 			err := syscall.Kill(pid, syscall.SIGHUP)
 			if err != nil {
+				srv_log.Stderrf(2, srv_log.P_ERROR,"%s(pid:%d); %s\n", err, pid, "Try to start a new server...")
 				m.startNewServer()
 			}
 		default:
