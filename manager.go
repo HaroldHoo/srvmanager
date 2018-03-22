@@ -10,17 +10,18 @@ package srvmanager
 
 import (
 	srv_log "github.com/HaroldHoo/srvmanager/log"
+	"log"
 	"context"
 	"flag"
 	"net/http"
 	"os"
-	"os/signal"
 	"os/exec"
 	"path/filepath"
 	"strings"
 	"syscall"
 	"time"
 	"errors"
+	"github.com/fvbock/endless"
 )
 
 type Manager struct {
@@ -95,7 +96,7 @@ func (m *Manager) startNewServer() {
 	path := GetCurrentFilename()
 	argv := os.Args
 	// log.Infof("exec path: %v\n", path)
-	log.Infof("origin args: %v\n", argv)
+	log.Infof("origin args: %s\n", argv)
 
 	newArgs := make([]string, 0)
 	newArgs = append(newArgs, os.Args[0])
@@ -112,38 +113,14 @@ func (m *Manager) startNewServer() {
 	if m.AccessLogFile != nil {
 		newArgs = append(newArgs, "-accesslog=" + *m.AccessLogFile)
 	}
-	log.Infof("deamon args: %v\n", newArgs)
+	log.Infof("deamon args: %s\n", newArgs)
 
 	cmd := exec.Command(path)
 	cmd.Args = newArgs
 	cmd.Env = os.Environ()
 	err := cmd.Start()
 	if err != nil {
-		log.Fatalf("Restart: Failed to launch, error: %v\n", err)
-	}
-}
-
-func (m *Manager) signalListen() {
-	log := &srv_log.Log{Filename: *m.ErrorLogFile}
-
-	c := make(chan os.Signal)
-	signal.Notify(c)
-	s := <-c
-	switch s {
-	case syscall.SIGINT, syscall.SIGTERM:
-		log.Warningf("Catch signal: %s, Shutdown Server ...\n", s)
-		m.gracefulShutdown(5)
-		log.Warningf("Server has been shutdown.\n")
-	case syscall.SIGHUP, syscall.SIGSYS:
-		log.Warningf("Catch signal: %s, Restart Server ...\n", s)
-		m.gracefulShutdown(5)
-		time.Sleep(time.Duration(100) * time.Millisecond)
-		log.Warningf("Server has been shutdown.\n")
-		m.startNewServer()
-		log.Warningf("Server has been restart.\n")
-	default:
-		log.Warningf("Catch signal: %s; but do nothing.\n", s)
-		m.signalListen()
+		log.Fatalf("Start: Failed to launch, error: %v\n", err)
 	}
 }
 
@@ -157,24 +134,25 @@ func (m *Manager) gracefulShutdown(second int) {
 }
 
 func (m *Manager) runServer() {
-	go func() {
-		log := &srv_log.Log{Filename: *m.ErrorLogFile}
-		log.Infof("Server's pid: %d\n", os.Getpid())
-		m.writePidFile()
+	l := &srv_log.Log{Filename: *m.ErrorLogFile}
+	l.Infof("Server's pid: %d\n", os.Getpid())
+	m.writePidFile()
 
-		// service connections
-		if err := m.Srv.ListenAndServe(); err != nil {
-			//if reflect.TypeOf(err).String() == "*net.OpError" {
-			if err != http.ErrServerClosed{
-				m.removePidFile()
-				log.Fatalf("%s\n", err)
-			}else{
-				log.Errorf("%s\n", err)
-			}
+	// endless
+	log.SetOutput(m.GetErrorLogWriter())
+	log.SetPrefix("[LOG] ")
+	endless.DefaultReadTimeOut = m.Srv.ReadTimeout
+	endless.DefaultWriteTimeOut = m.Srv.WriteTimeout
+	endless.DefaultMaxHeaderBytes = m.Srv.MaxHeaderBytes
+
+	if err := endless.ListenAndServe(m.Srv.Addr, m.Srv.Handler); err != nil {
+		if err != http.ErrServerClosed{
+			m.removePidFile()
+			l.Fatalf("%s\n", err)
+		}else{
+			l.Errorf("%s\n", err)
 		}
-	}()
-
-	m.signalListen()
+	}
 }
 
 func (m *Manager) GetAccessLogWriter() (file *os.File){

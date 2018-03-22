@@ -1,5 +1,5 @@
 # srvmanager
-1. graceful shutdown
+1. graceful shutdown/reload
 2. manager process via pidfile
 3. log something easier
 
