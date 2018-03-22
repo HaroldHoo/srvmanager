@@ -9,10 +9,12 @@
 package srvmanager
 
 import (
+	"context"
+	"errors"
+	"flag"
+	"github.com/HaroldHoo/srvmanager/endless"
 	srv_log "github.com/HaroldHoo/srvmanager/log"
 	"log"
-	"context"
-	"flag"
 	"net/http"
 	"os"
 	"os/exec"
@@ -20,8 +22,6 @@ import (
 	"strings"
 	"syscall"
 	"time"
-	"errors"
-	"github.com/fvbock/endless"
 )
 
 type Manager struct {
@@ -76,10 +76,10 @@ func (m *Manager) Run(server *http.Server) {
 	} else {
 		switch *m.flag_signal {
 		case "stop":
-			pid,_ := m.getPidFromPidFile()
+			pid, _ := m.getPidFromPidFile()
 			syscall.Kill(pid, syscall.SIGINT)
 		case "restart", "reload":
-			pid,_ := m.getPidFromPidFile()
+			pid, _ := m.getPidFromPidFile()
 			err := syscall.Kill(pid, syscall.SIGHUP)
 			if err != nil {
 				m.startNewServer()
@@ -102,16 +102,16 @@ func (m *Manager) startNewServer() {
 	newArgs = append(newArgs, os.Args[0])
 	newArgs = append(newArgs, "-d=false")
 	if m.flag_port != nil {
-		newArgs = append(newArgs, "-p=" + *m.flag_port)
+		newArgs = append(newArgs, "-p="+*m.flag_port)
 	}
 	if m.PidFile != nil {
-		newArgs = append(newArgs, "-pid=" + *m.PidFile)
+		newArgs = append(newArgs, "-pid="+*m.PidFile)
 	}
 	if m.ErrorLogFile != nil {
-		newArgs = append(newArgs, "-errorlog=" + *m.ErrorLogFile)
+		newArgs = append(newArgs, "-errorlog="+*m.ErrorLogFile)
 	}
 	if m.AccessLogFile != nil {
-		newArgs = append(newArgs, "-accesslog=" + *m.AccessLogFile)
+		newArgs = append(newArgs, "-accesslog="+*m.AccessLogFile)
 	}
 	log.Infof("deamon args: %s\n", newArgs)
 
@@ -136,41 +136,40 @@ func (m *Manager) gracefulShutdown(second int) {
 func (m *Manager) runServer() {
 	l := &srv_log.Log{Filename: *m.ErrorLogFile}
 	l.Infof("Server's pid: %d\n", os.Getpid())
-	m.writePidFile()
 
 	// endless
 	log.SetOutput(m.GetErrorLogWriter())
 	log.SetPrefix("[LOG] ")
+	log.SetFlags(log.Ldate | log.Ltime | log.Lmicroseconds | log.Llongfile)
 	endless.DefaultReadTimeOut = m.Srv.ReadTimeout
 	endless.DefaultWriteTimeOut = m.Srv.WriteTimeout
 	endless.DefaultMaxHeaderBytes = m.Srv.MaxHeaderBytes
+	endless.DefaultBeforeBeginFunc = func(addr string) {
+		log.Println(syscall.Getpid(), "listen:", addr)
+		m.writePidFile()
+	}
 
 	if err := endless.ListenAndServe(m.Srv.Addr, m.Srv.Handler); err != nil {
-		if err != http.ErrServerClosed{
-			m.removePidFile()
-			l.Fatalf("%s\n", err)
-		}else{
-			l.Errorf("%s\n", err)
-		}
+		l.Warningf("%s\n", err)
 	}
 }
 
-func (m *Manager) GetAccessLogWriter() (file *os.File){
+func (m *Manager) GetAccessLogWriter() (file *os.File) {
 	err := errors.New("")
 	file, err = os.OpenFile(*m.AccessLogFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
 
-	if err != nil{
+	if err != nil {
 		file.Close()
 		file = os.Stderr
 	}
 	return
 }
 
-func (m *Manager) GetErrorLogWriter() (file *os.File){
+func (m *Manager) GetErrorLogWriter() (file *os.File) {
 	err := errors.New("")
 	file, err = os.OpenFile(*m.ErrorLogFile, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
 
-	if err != nil{
+	if err != nil {
 		file.Close()
 		file = os.Stderr
 	}
@@ -215,7 +214,7 @@ func CheckErrAndExitToStderr(err error) {
 	}
 }
 
-func Log(filename string) (*srv_log.Log) {
+func Log(filename string) *srv_log.Log {
 	return &srv_log.Log{Filename: filename}
 }
 
@@ -224,4 +223,3 @@ func PanicErr(err error) {
 		panic(err)
 	}
 }
-

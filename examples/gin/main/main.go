@@ -1,10 +1,11 @@
 package main
 
 import (
+	"github.com/HaroldHoo/srvmanager"
+	"github.com/gin-gonic/gin"
+	"log"
 	"net/http"
 	"time"
-	"github.com/gin-gonic/gin"
-	"github.com/HaroldHoo/srvmanager"
 )
 
 func main() {
@@ -15,17 +16,18 @@ func main() {
 
 	router := gin.Default()
 	router.GET("/", func(c *gin.Context) {
+		time.Sleep(5 * time.Second)
 		srvmanager.Log(*m.ErrorLogFile).Infof("%s ---- \n", time.Now().Format("2006-01-02 15:04:05"))
-		c.String(http.StatusOK, "Welcome Gin Server")
+		log.Printf("%s\n", "log test ----")
+		c.String(http.StatusOK, "Welcome !")
 	})
 
 	srv := &http.Server{
 		Handler:        router,
-		ReadTimeout:    3 * time.Second,
-		WriteTimeout:   3 * time.Second,
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
 		MaxHeaderBytes: 1 << 20,
 	}
 
 	m.Run(srv)
 }
-

@@ -9,14 +9,14 @@
 package srvmanager
 
 import (
-	srv_log "github.com/HaroldHoo/srvmanager/log"
 	"bufio"
+	"errors"
 	"fmt"
+	srv_log "github.com/HaroldHoo/srvmanager/log"
 	"os"
 	"strconv"
 	"strings"
 	"syscall"
-	"errors"
 )
 
 func (m *Manager) getPidFromPidFile() (ret int, err error) {
@@ -32,7 +32,8 @@ func (m *Manager) getPidFromPidFile() (ret int, err error) {
 	CheckErrAndExitToStderr(err)
 
 	b := make([]byte, 8)
-	var n int; n, err = f.Read(b)
+	var n int
+	n, err = f.Read(b)
 	if n == 0 {
 		srv_log.Stderrf(3, srv_log.P_FATAL, "pidfile(%s) is empty; exit status 1\n", *m.PidFile)
 		os.Exit(1)
@@ -63,7 +64,7 @@ func (m *Manager) writePidFile() {
 	w.Flush()
 }
 
-func (m *Manager) removePidFile() (err error){
+func (m *Manager) removePidFile() (err error) {
 	err = errors.New("")
 	if m.PidFile == nil {
 		return
@@ -81,4 +82,3 @@ func fileIsExist(filename *string) (ret bool) {
 	}
 	return
 }
-
