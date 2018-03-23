@@ -45,7 +45,7 @@ func New() *Manager {
 	errorlogfile := flag.String("errorlog", "/var/log/"+GetCurrentExecname()+"_error.log", "log file")
 	accesslogfile := flag.String("accesslog", "/var/log/"+GetCurrentExecname()+"_access.log", "log file")
 	m.flag_deamon = flag.Bool("d", true, "Start as deamon.")
-	m.flag_signal = flag.String("s", "start", "Send a signal to the process.  The argument signal can be one of: start stop reload restart,\nThe following table shows the corresponding system signals:\nstop	SIGTERM\nreload	SIGHUP\nrestart	SIGHUP\n")
+	m.flag_signal = flag.String("s", "start", "(When used with the -pid option, the pid will be from specified pidfile.)\nSend a signal to the process.  The argument signal can be one of: start stop reload restart,\nThe following table shows the corresponding system signals:\nstop	SIGTERM\nreload	SIGHUP\nrestart	SIGHUP\n")
 	m.flag_port = flag.String("p", "8080", "Listen port")
 	flag.Parse()
 
