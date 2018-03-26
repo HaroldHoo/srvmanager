@@ -12,6 +12,7 @@ import (
 func main() {
 	m := srvmanager.New()
 
+	middleware.DefaultLoggerConfig.Output = m.GetAccessLogWriter()
 	router := echo.New()
 	router.Use(middleware.Logger())
 	router.Use(middleware.Recover())
