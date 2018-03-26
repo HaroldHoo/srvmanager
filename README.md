@@ -34,7 +34,7 @@ Usage of ./main/bin/server:
    > https://github.com/HaroldHoo/srvmanager/tree/master/examples/gin
    2. Via https://github.com/labstack/echo : (High performance, minimalist Go web framework.)
    > https://github.com/HaroldHoo/srvmanager/tree/master/examples/echo
-   2. Via https://github.com/kataras/iris : (The fastest web framework for Go on (THIS) Earth.)
+   3. Via https://github.com/kataras/iris : (The fastest web framework for Go on (THIS) Earth.)
    > https://github.com/HaroldHoo/srvmanager/tree/master/examples/iris
 
 ```
