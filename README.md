@@ -30,10 +30,12 @@ Usage of ./main/bin/server:
 ---
 
 ## Examples
-   1. Via https://github.com/gin-gonic/gin : （Gin is a HTTP web framework written in Go (Golang).）
+   1. Via https://github.com/gin-gonic/gin : (Gin is a HTTP web framework written in Go (Golang).)
    > https://github.com/HaroldHoo/srvmanager/tree/master/examples/gin
-   2. Via https://github.com/labstack/echo : （High performance, minimalist Go web framework）
+   2. Via https://github.com/labstack/echo : (High performance, minimalist Go web framework.)
    > https://github.com/HaroldHoo/srvmanager/tree/master/examples/echo
+   2. Via https://github.com/kataras/iris : (The fastest web framework for Go on (THIS) Earth.)
+   > https://github.com/HaroldHoo/srvmanager/tree/master/examples/iris
 
 ```
 package main
