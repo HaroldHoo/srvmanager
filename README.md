@@ -1,7 +1,7 @@
 # srvmanager
 1. graceful shutdown/reload/update reload. （平滑地 关闭/重启/迭代二进制重启）
 2. manager process via -s and -pid option. （通过 可选的-pid 和 -s reload 或 kill -HUP pid 像Nginx一样优雅地重启服务）
-3. log something easier. （记录日志更便捷）
+3. log something easier.
 
 ## Usage
 ```
